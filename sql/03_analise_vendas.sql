@@ -7,7 +7,7 @@ USE ecommerce_logistica;
 SELECT 
     SUM(ip.quantidade * ip.preco_unitario) AS faturamento_total
 FROM itens_pedido ip
-JOIN pedidos p ON ip.pedido_id = p.pedido_id
+JOIN pedidos p ON ip.pedido_id = p.pedidos_id
 WHERE p.status = 'entregue';
 
 -- 2. Ticket médio por pedido
@@ -16,7 +16,7 @@ SELECT
 FROM (
     SELECT ip.pedido_id, SUM(ip.quantidade * ip.preco_unitario) AS total_pedido
     FROM itens_pedido ip
-    JOIN pedidos p ON ip.pedido_id = p.pedido_id
+    JOIN pedidos p ON ip.pedido_id = p.pedidos_id
     WHERE p.status = 'entregue'
     GROUP BY ip.pedido_id
 ) AS subtotal;
@@ -45,7 +45,7 @@ SELECT
     c.estado,
     ROUND(SUM(ip.quantidade * ip.preco_unitario), 2) AS faturamento
 FROM itens_pedido ip
-JOIN pedidos p ON ip.pedido_id = p.pedido_id
+JOIN pedidos p ON ip.pedido_id = p.pedidos_id
 JOIN clientes c ON p.cliente_id = c.cliente_id
 GROUP BY c.estado
 ORDER BY faturamento DESC;
@@ -55,7 +55,7 @@ SELECT
     DATE_FORMAT(p.data_pedido, '%Y-%m') AS mes,
     ROUND(SUM(ip.quantidade * ip.preco_unitario), 2) AS faturamento_mes
 FROM itens_pedido ip
-JOIN pedidos p ON ip.pedido_id = p.pedido_id
+JOIN pedidos p ON ip.pedido_id = p.pedidos_id
 WHERE p.status = 'entregue'
 GROUP BY mes
 ORDER BY mes;
@@ -74,17 +74,17 @@ ORDER BY faturamento DESC;
 SELECT 
     status,
     COUNT(*) AS total,
-    ROUND(COUNT() * 100.0 / (SELECT COUNT() FROM pedidos), 2) AS percentual
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM pedidos), 2) AS percentual
 FROM pedidos
 GROUP BY status;
 
 -- 9. Top 5 clientes por valor gasto (RFM simplificado - Valor)
 SELECT 
     c.nome,
-    COUNT(DISTINCT p.pedido_id) AS qtd_pedidos,
+    COUNT(DISTINCT p.pedidos_id) AS qtd_pedidos,
     ROUND(SUM(ip.quantidade * ip.preco_unitario), 2) AS total_gasto
 FROM itens_pedido ip
-JOIN pedidos p ON ip.pedido_id = p.pedido_id
+JOIN pedidos p ON ip.pedido_id = p.pedidos_id
 JOIN clientes c ON p.cliente_id = c.cliente_id
 WHERE p.status = 'entregue'
 GROUP BY c.nome
